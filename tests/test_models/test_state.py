@@ -1,45 +1,35 @@
 #!/usr/bin/python3
-"""
-    test state
-"""
-from models.base_model import BaseModel
-from models.state import State
-import unittest
+"""This is the state class"""
+from sqlalchemy.ext.declarative import declarative_base
+from models.base_model import BaseModel, Base
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String
+import models
+from models.city import City
+import shlex
 
 
-class test_State(unittest.TestCase):
+class State(BaseModel, Base):
+    """This is the class for State
+    Attributes:
+        name: input name
     """
-        test for state class
-    """
-    @classmethod
-    def setUpClass(cls):
-        """
-            setup
-        """
-        cls.dummy_state = State()
-        cls.dummy_state.name = "tests"
+    __tablename__ = "states"
+    name = Column(String(128), nullable=False)
+    cities = relationship("City", cascade='all, delete, delete-orphan',
+                          backref="state")
 
-    @classmethod
-    def tearDownClass(cls):
-        """
-            tear down
-        """
-        del cls.dummy_state
-
-    def test_inheritance(self):
-        """
-            test proper inheritance
-        """
-        self.assertIsInstance(self.dummy_state, BaseModel)
-        self.assertTrue(hasattr(self.dummy_state, "id"))
-        self.assertTrue(hasattr(self.dummy_state, "created_at"))
-        self.assertTrue(hasattr(self.dummy_state, "updated_at"))
-
-    def test_attrs(self):
-        """
-            test attributes
-        """
-        self.assertTrue(hasattr(self.dummy_state, "name"))
-
-if __name__ == "__main__":
-    unittest.main()
+    @property
+    def cities(self):
+        var = models.storage.all()
+        lista = []
+        result = []
+        for key in var:
+            city = key.replace('.', ' ')
+            city = shlex.split(city)
+            if (city[0] == 'City'):
+                lista.append(var[key])
+        for elem in lista:
+            if (elem.state_id == self.id):
+                result.append(elem)
+        return (result)
